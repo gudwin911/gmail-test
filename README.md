@@ -113,37 +113,50 @@ if (email) {
   console.log("Email was not found!");
 }
 ```
-## Using `check_inbox()` to get email body using Codeceptjs
+## Implementation `check_inbox()` to get email body using Codeceptjs
 
 
 ```javascript
-// e.g. in Page object
+// in Helper
+const Helper = require('@codeceptjs/helper');
 const gmail = require("gmail-test");
 
-module.exports = {
-  async loginWithEmailLink(email, subject, from) {
-      let mail = await gmail.check_inbox(
-          "credentials.json", // Assuming credentials.json is in the current directory.
-          "token.json", // Look for gmail_token.json in the current directory (if it doesn't exists, it will be created by the script).
-          subject, // We are looking for 'Activate Your Account' in the subject of the message.
-          from, // We are looking for a sender header which has 'no-reply@domain.com' in it.
-          email, // Which inbox to poll. credentials.json should contain the credentials to it.
-          10, // Poll interval (in seconds).
-          60, // Maximum poll time (in seconds), after which we'll giveup.
-          { // optional parameter
-              include_body: true, // to return body of the mail
-              limit: 3 // to look through recent quantity of mails
-          }
-      );
-      let link = await mail.body.html.match(/<a[^>]+href="([^\"]+)"+>link<\/a> e.g. Some link href/);
-      I.amOnPage(link[1]);
-      I.waitForText('You are logged in!')
-  },
-};
-```
-# Contributing
+class CustomHelper extends Helper {
 
-Please feel free to contribute to this project.
+    async getMail(email, subject, from) {
+        return await gmail.check_inbox(
+            "credentials.json", // Assuming credentials.json is in the current directory.
+            "token.json", // Look for gmail_token.json in the current directory (if it doesn't exists, it will be created by the script).
+            subject, // We are looking for 'Activate Your Account' in the subject of the message.
+            from, // We are looking for a sender header which has 'no-reply@domain.com' in it.
+            email, // Which inbox to poll. credentials.json should contain the credentials to it.
+            10, // Poll interval (in seconds).
+            60, // Maximum poll time (in seconds), after which we'll giveup.
+            { // optional parameter
+                include_body: true, // to return body of the mail
+                limit: 3 // to look through recent quantity of mails
+            }
+        );
+    }
+}
+
+module.exports = CustomHelper;
+```
+## Usage `check_inbox()` to get email body using Codeceptjs
+```javascript
+//in test
+Scenario('Login with url from email', async () => {
+    I.amOnPage('/someUrl');
+    I.fillField('loginField', 'some email address');
+    I.fillField('passwordField', 'some password');
+    I.click('registerButton');
+    let mail = await I.getMail('some email address', 'registration topic', 'some sender email');
+    let link = mail.body.html.match(/<a[^>]+href="([^\"]+)"+>link<\/a> e.g. Some link href/);
+    I.amOnPage(link[1]);
+    I.waitForText('You are logged in!')
+});
+
+```
 
 # Credits
 
