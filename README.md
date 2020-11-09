@@ -1,5 +1,5 @@
-# gmail-tester
-Package based on az-gmail-tester with small changes<br/>
+# gmail-test
+Package based on [az-gmail-tester](https://github.com/ayyazzafar/gmail-tester) with small changes<br/>
 
 A simple Node.js Gmail client which checks/returns email message(s) straight from any Gmail-powered account (both private and company).<br/>
 There are two main functionalities this library provides:<br>
