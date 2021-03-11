@@ -40,9 +40,11 @@ async function _get_recent_email(credentials_json, token_path, options = {}) {
 
   const query = _init_query(options);
   // Load client secrets from a local file.
-  console.log(credentials_json);
   const content = fs.readFileSync(credentials_json);
-  console.log('@@@@@', JSON.parse(content));
+  if (options.logs) {
+    console.log(credentials_json);
+    console.log('@@@@@', JSON.parse(content));
+  }
   const oAuth2Client = await gmail.authorize(JSON.parse(content), token_path);
   const gmail_client = google.gmail({ version: "v1", oAuth2Client });
   var gmail_emails = await gmail.get_recent_email(
@@ -106,12 +108,14 @@ async function check_inbox(
   to,
   wait_time_sec = 30,
   max_wait_time_sec = 60,
-  options = {}
+  options = {logs: false}
 ) {
   try {
-    console.log(
-      `[gmail] Checking for message from '${from}', to: ${to}, contains '${subject}' in subject...`
-    );
+    if (options.logs) {
+      console.log(
+        `[gmail] Checking for message from '${from}', to: ${to}, contains '${subject}' in subject...`
+      );
+    }
     // Load client secrets from a local file.
     let found_email = null;
     let done_waiting_time = 0;
@@ -123,15 +127,19 @@ async function check_inbox(
           email.subject.indexOf(subject) >= 0 &&
           email.from.indexOf(from) >= 0
         ) {
-          console.log(`[gmail] Found!`);
+          if (options.logs) {
+            console.log(`[gmail] Found!`);
+          }
           found_email = email;
           break;
         }
       }
       if (!found_email) {
-        console.log(
-          `[gmail] Message not found. Waiting ${wait_time_sec} seconds...`
-        );
+        if (options.logs) {
+          console.log(
+              `[gmail] Message not found. Waiting ${wait_time_sec} seconds...`
+          );
+        }
         done_waiting_time += wait_time_sec;
         if (done_waiting_time >= max_wait_time_sec) {
           console.log("[gmail] Maximum waiting time exceeded!");
